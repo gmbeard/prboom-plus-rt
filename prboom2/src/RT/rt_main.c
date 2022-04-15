@@ -24,6 +24,7 @@
  *---------------------------------------------------------------------
  */
 
+#include <stddef.h>
 #include "rt_main.h"
 
 #include <SDL_timer.h>
@@ -50,27 +51,47 @@ static void RT_Print(const char *pMessage, void *pUserData)
   lprintf(LO_ERROR, "%s\n", pMessage);
 }
 
-
+#ifdef RG_USE_SURFACE_WIN32
 void RT_Init(HINSTANCE hinstance, HWND hwnd)
+#elif defined(RG_USE_SURFACE_XLIB)
+void RT_Init(Display* hinstance, Window hwnd)
+#else
+//void RT_Init()
+#endif
 {
+#ifdef RG_USE_SURFACE_WIN32
   RgWin32SurfaceCreateInfo win32Info =
   {
     .hinstance = hinstance,
     .hwnd = hwnd
   };
+#elif defined(RG_USE_SURFACE_XLIB)
+  RgXlibSurfaceCreateInfo xlibInfo =
+  {
+    .dpy = hinstance,
+    .window = hwnd
+  };
+#endif
 
   RgInstanceCreateInfo info =
   {
     .pAppName = "PRBoom",
     .pAppGUID = "297e3cc1-4076-4a60-ac7c-5904c5db1313",
 
+#ifdef RG_USE_SURFACE_WIN32
     .pWin32SurfaceInfo = &win32Info,
+#elif defined(RG_USE_SURFACE_XLIB)
+    .pXlibSurfaceCreateInfo = &xlibInfo,
+#endif
 
+#if 0
   #ifndef NDEBUG
     .enableValidationLayer = true,
   #else
     .enableValidationLayer = M_CheckParm("-rtdebug"),
   #endif
+#endif
+    .enableValidationLayer = false,
     .pfnPrint = RT_Print,
 
     .pShaderFolderPath = RG_RESOURCES_FOLDER "shaders/",
@@ -112,14 +133,15 @@ void RT_Init(HINSTANCE hinstance, HWND hwnd)
   }
 
   rtmain.hwnd = hwnd;
-
+#if defined(RG_USE_SURFACE_XLIB)
+  rtmain.display = hinstance;
+#endif
 
 #ifndef NDEBUG
   rtmain.devmode = true;
 #else
   rtmain.devmode = M_CheckParm("-rtdevmode");
 #endif
-
 
   {
     RgBool32 dlss_available = false;
@@ -194,12 +216,23 @@ static RgExtent2D GetCurrentHWNDSize()
 {
   RgExtent2D extent = { 0,0 };
 
+#if defined(RG_USE_SURFACE_WIN32)
   RECT rect;
   if (GetClientRect(rtmain.hwnd, &rect))
   {
     extent.width = rect.right - rect.left;
     extent.height = rect.bottom - rect.top;
   }
+#elif defined(RG_USE_SURFACE_XLIB)
+    Window root;
+    int x, y;
+    unsigned int width, height, border_width, depth;
+    Status s = XGetGeometry(rtmain.display, rtmain.hwnd, &root, &x, &y, &width, &height, &border_width, &depth);
+    assert(s);
+
+    extent.width = width;
+    extent.height = height;
+#endif
 
   assert(extent.width > 0 && extent.height > 0);
   return extent;

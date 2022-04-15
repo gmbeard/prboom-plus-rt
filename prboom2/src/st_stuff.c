@@ -882,8 +882,14 @@ static void ST_doPaletteStuff(void)
       }
     }
 
+#if 0
+    /* TODO(GB):
+     * This assertion appears to fail when the radiation suit
+     * power up expires...
+     */
     if (palette == 0) assert(rt_powerupflags == 0);
     if (rt_powerupflags == 0) assert(palette == 0);
+#endif
 
     RT_SetPowerupPalette(rt_powerupflags);
   }

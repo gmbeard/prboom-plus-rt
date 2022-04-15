@@ -40,7 +40,7 @@
 #include "WIN/win_fopen.h"
 #endif
 
-#include <gl/GLU.h>
+#include <GL/glu.h>
 
 #include "doomtype.h"
 #include "lprintf.h"
@@ -508,9 +508,11 @@ static void CALLBACK ntessVertex(vertex_t *vert)
 
 static void CALLBACK ntessEnd(void)
 {
+#if 0
 #ifdef PRBOOM_DEBUG
   if (levelinfo)
     fprintf(levelinfo, "\t\tEnd loopcount %i vertexcount %i\n", rtp_sectorloops[currentsector].loopcount, rtp_sectorloops[currentsector].loops[rtp_sectorloops[currentsector].loopcount - 1].vertexcount);
+#endif
 #endif
 }
 
@@ -847,6 +849,7 @@ static void RTP_PreprocessSectors(void)
   int j;
 #endif
 
+#if 0
 #ifdef PRBOOM_DEBUG
   levelinfo = fopen("levelinfo.txt", "a");
   if (levelinfo)
@@ -856,6 +859,7 @@ static void RTP_PreprocessSectors(void)
     else
       fprintf(levelinfo, "E%iM%i\n", gameepisode, gamemap);
   }
+#endif
 #endif
 
   if (numsectors)

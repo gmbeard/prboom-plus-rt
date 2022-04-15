@@ -20,3 +20,6 @@ cmake_install.cmake
 /prboom2/out/*
 /prboom2/CMakeSettings.json
 /prboom2/external/*
+
+RayTracedGL1
+DLSS

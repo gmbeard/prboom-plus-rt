@@ -1,4 +1,4 @@
-PrBoom 2.6.1um
+# PrBoom 2.6.1um
 
 PrBoom is a version of the classic 3D shoot'em'up game Doom, originally
 written by id Software.
@@ -226,12 +226,14 @@ Other Tips
 ----------
 
 On Linux, SDL tries to detect an appropriate video device automatically.
-If you want to overrite the default, you can set the SDL_VIDEODRIVER
+If you want to overrite the default, you can set the `SDL_VIDEODRIVER`
 enviromental variable. At a bash prompt, this is as easy as running:
 
-SDL_VIDEODRIVER=fbcon prboom
+    SDL_VIDEODRIVER=fbcon prboom
+
 or
-SDL_VIDEODRIVER=svga prboom
+
+    SDL_VIDEODRIVER=svga prboom
 
 Details
 -------

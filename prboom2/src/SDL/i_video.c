@@ -51,9 +51,9 @@
 
 #include "SDL.h"
 //e6y
-#ifdef _WIN32
+//#ifdef _WIN32
 #include <SDL_syswm.h>
-#endif
+//#endif
 
 #include "m_argv.h"
 #include "doomstat.h"
@@ -1233,6 +1233,7 @@ void I_UpdateVideoMode(void)
       gld_CleanStaticMemory();
     }
 #endif
+
     if (V_GetMode() == VID_MODERT)
     {
         RT_Destroy();
@@ -1495,6 +1496,7 @@ void I_UpdateVideoMode(void)
 
   if (V_GetMode() == VID_MODERT)
   {
+#if defined(RG_USE_SURFACE_WIN32)
     // get raw WinAPI handles from SDL
     HINSTANCE hinstance;
     HWND hwnd;
@@ -1507,6 +1509,21 @@ void I_UpdateVideoMode(void)
     }
 
     RT_Init(hinstance, hwnd);
+#elif defined(RG_USE_SURFACE_XLIB)
+    Display* hinstance = 0;
+    Window hwnd;
+    {
+      SDL_SysWMinfo wmInfo;
+      SDL_VERSION(&wmInfo.version);
+      SDL_bool r = SDL_GetWindowWMInfo(sdl_window, &wmInfo);
+      (void)(r);
+      assert(r == SDL_TRUE);
+      hwnd = wmInfo.info.x11.window;
+      hinstance = wmInfo.info.x11.display;
+    }
+
+    RT_Init(hinstance, hwnd);
+#endif
 
     M_ChangeFOV();
     deh_changeCompTranslucency();

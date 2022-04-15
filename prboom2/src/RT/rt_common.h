@@ -30,7 +30,7 @@
 #include <assert.h>
 #include <lprintf.h>
 
-#define RG_RESOURCES_FOLDER "ovrd/"
+//#define RG_RESOURCES_FOLDER "/ovrd/"
 
 #define RG_MAX_TEXTURE_COUNT 4096
 

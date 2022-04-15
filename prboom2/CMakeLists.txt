@@ -4,6 +4,42 @@ project("PrBoom-Plus-RT"
     VERSION 2.6.1
     HOMEPAGE_URL "https://github.com/coelckers/prboom-plus")
 
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+option(
+    PRBOOM_SUPERBUILD
+    "Super-build mode"
+    ON
+)
+
+option(BUILD_GL "Enable OpenGL rendering code" ON)
+option(WITH_VORBISFILE "Use vorbisfile if available" ON)
+option(WITH_IMAGE "Use SDL2_image if available" ON)
+option(WITH_MIXER "Use SDL2_mixer if available" ON)
+option(WITH_NET "Use SDL2_net if available" OFF)
+option(WITH_PCRE "Use PCRE if available" ON)
+option(WITH_ZLIB "Use ZLIB if available" ON)
+option(WITH_MAD "Use libmad if available" ON)
+option(WITH_FLUIDSYNTH "Use FluidSynth if available" ON)
+option(WITH_DUMB "Use DUMB if available" ON)
+option(WITH_PORTMIDI "Use PortMidi if available" ON)
+option(WITH_ALSA "Use ALSA MIDI if available" ON)
+option(SIMPLECHECKS "Enable checks which only impose significant overhead if a posible error is detected" ON)
+option(ZONEIDCHECK "Enable id checks on zone blocks, to detect corrupted and illegally freed blocks" ON)
+
+# Debug options, disabled by default
+option(RANGECHECK "Enable internal range checking" OFF)
+option(INSTRUMENTED "Enable real-time memory allocation statistics, and extra debugging features" OFF)
+option(TIMEDIAG "Enable creation of time stamps each time a lump is locked, and reporting of lumps locked for long periods of time" OFF)
+option(HEAPCHECK "Turn on continuous heap checking (very slow)" OFF)
+option(HEAPDUMP "Turn on dumping the heap state for debugging" OFF)
+option(FORCE_CROSSCOMPILE "Enable cross-compilation" OFF)
+
+if(PRBOOM_SUPERBUILD)
+    include(SuperBuild)
+    return()
+endif()
+
 # Set a default build type if none was specified
 set(default_build_type "RelWithDebInfo")
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -15,7 +51,6 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(PRBOOM_EXTERNAL_FOLDER_PATH "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
@@ -76,20 +111,16 @@ check_include_file("unistd.h" HAVE_UNISTD_H)
 check_include_file("asm/byteorder.h" HAVE_ASM_BYTEORDER_H)
 check_include_file("dirent.h" HAVE_DIRENT_H)
 
-option(BUILD_GL "Enable OpenGL rendering code" ON)
 if(BUILD_GL)
     find_package(OpenGL)
 endif()
 
-#find_package(SDL2 2.0.7 REQUIRED)
-    set( SDL2_LIBRARIES "${PRBOOM_EXTERNAL_FOLDER_PATH}/SDL2/SDL2.lib" )
-    set( SDL2_INCLUDE_DIR "${PRBOOM_EXTERNAL_FOLDER_PATH}/SDL2/include" )
-    set( SDL2_INCLUDE_DIRS "${SDL2_INCLUDE_DIR}" )
-    set( SDL2_FOUND TRUE )
-#
+find_package(RayTracedGL1 REQUIRED)
+find_package(SDL2 REQUIRED)
+if(UNIX)
+    find_package(X11 REQUIRED)
+endif()
 
-
-option(WITH_IMAGE "Use SDL2_image if available" OFF)
 if(WITH_IMAGE)
     find_package(SDL2_image)
     if(SDL2_IMAGE_FOUND)
@@ -97,7 +128,6 @@ if(WITH_IMAGE)
     endif()
 endif()
 
-option(WITH_MIXER "Use SDL2_mixer if available" OFF)
 if(WITH_MIXER)
     find_package(SDL2_mixer)
     if(SDL2_MIXER_FOUND)
@@ -105,7 +135,6 @@ if(WITH_MIXER)
     endif()
 endif()
 
-option(WITH_NET "Use SDL2_net if available" OFF)
 if(WITH_NET)
     find_package(SDL2_net)
     if(SDL2_NET_FOUND)
@@ -114,7 +143,6 @@ if(WITH_NET)
     endif()
 endif()
 
-option(WITH_PCRE "Use PCRE if available" ON)
 if(WITH_PCRE)
     find_package(PCREPOSIX)
     if(PCREPOSIX_FOUND)
@@ -122,7 +150,6 @@ if(WITH_PCRE)
     endif()
 endif()
 
-option(WITH_ZLIB "Use ZLIB if available" ON)
 if(WITH_ZLIB)
     find_package(ZLIB)
     if(ZLIB_FOUND)
@@ -130,7 +157,6 @@ if(WITH_ZLIB)
     endif()
 endif()
 
-option(WITH_MAD "Use libmad if available" ON)
 if(WITH_MAD)
     find_package(LibMad)
     if(LIBMAD_FOUND)
@@ -138,7 +164,6 @@ if(WITH_MAD)
     endif()
 endif()
 
-option(WITH_FLUIDSYNTH "Use FluidSynth if available" ON)
 if(WITH_FLUIDSYNTH)
     find_package(FluidSynth)
     if(FLUIDSYNTH_FOUND)
@@ -146,7 +171,6 @@ if(WITH_FLUIDSYNTH)
     endif()
 endif()
 
-option(WITH_DUMB "Use DUMB if available" ON)
 if(WITH_DUMB)
     find_package(DUMB)
     if(DUMB_FOUND)
@@ -154,21 +178,8 @@ if(WITH_DUMB)
     endif()
 endif()
 
-option(WITH_VORBISFILE "Use vorbisfile if available" ON)
 if(WITH_VORBISFILE)
-    # find_package(Vorbis)
-        set( VORBISFILE_LIBRARY "${PRBOOM_EXTERNAL_FOLDER_PATH}/Vorbis/libvorbisfile.lib")
-        set( VORBIS_LIBRARY     "${PRBOOM_EXTERNAL_FOLDER_PATH}/Vorbis/libvorbis.lib" )
-        set( VORBIS_INCLUDE_DIR "${PRBOOM_EXTERNAL_FOLDER_PATH}/Vorbis/include" )
-
-        set( OGG_LIBRARIES      "${PRBOOM_EXTERNAL_FOLDER_PATH}/Ogg/libogg.lib" )
-        set( OGG_INCLUDE_DIRS   "${PRBOOM_EXTERNAL_FOLDER_PATH}/Ogg/include" )
-
-        set( VORBIS_LIBRARIES ${VORBISFILE_LIBRARY} ${VORBIS_LIBRARY} ${OGG_LIBRARIES} )
-        set( VORBIS_INCLUDE_DIRS ${VORBIS_INCLUDE_DIR} ${OGG_INCLUDE_DIRS} )
-        set( VORBIS_FOUND TRUE )
-    #
-
+    find_package(Vorbis)
     if(VORBIS_FOUND)
         set(HAVE_LIBVORBISFILE TRUE)
     else()
@@ -176,7 +187,6 @@ if(WITH_VORBISFILE)
     endif()
 endif()
 
-option(WITH_PORTMIDI "Use PortMidi if available" ON)
 if(WITH_PORTMIDI)
     find_package(PortMidi)
     if(PortMidi_FOUND)
@@ -184,7 +194,6 @@ if(WITH_PORTMIDI)
     endif()
 endif()
 
-option(WITH_ALSA "Use ALSA MIDI if available" ON)
 if(WITH_ALSA)
     find_package(ALSA)
     if(ALSA_FOUND)
@@ -200,18 +209,8 @@ check_symbol_exists(SDL_JoystickGetAxis "SDL.h" HAVE_SDL_JOYSTICKGETAXIS)
 set(CMAKE_REQUIRED_INCLUDES ${CMAKE_REQUIRED_INCLUDES_PREV})
 set(CMAKE_REQUIRED_LIBRARIES ${CMAKE_REQUIRED_LIBRARIES_PREV})
 
-set(DOOMWADDIR "${CMAKE_INSTALL_PREFIX}/share/games/doom" CACHE PATH "Path to look for WAD files")
-set(PRBOOMDATADIR "${CMAKE_INSTALL_PREFIX}/share/${PACKAGE_TARNAME}" CACHE PATH "Path to install supplemental files")
-
-option(SIMPLECHECKS "Enable checks which only impose significant overhead if a posible error is detected" ON)
-option(ZONEIDCHECK "Enable id checks on zone blocks, to detect corrupted and illegally freed blocks" ON)
-
-# Debug options, disabled by default
-option(RANGECHECK "Enable internal range checking" OFF)
-option(INSTRUMENTED "Enable real-time memory allocation statistics, and extra debugging features" OFF)
-option(TIMEDIAG "Enable creation of time stamps each time a lump is locked, and reporting of lumps locked for long periods of time" OFF)
-option(HEAPCHECK "Turn on continuous heap checking (very slow)" OFF)
-option(HEAPDUMP "Turn on dumping the heap state for debugging" OFF)
+set(DOOMWADDIR "${CMAKE_INSTALL_DATAROOTDIR}/games/doom" CACHE PATH "Path to look for WAD files")
+set(PRBOOMDATADIR "${CMAKE_INSTALL_DATAROOTDIR}/${PACKAGE_TARNAME}" CACHE PATH "Path to install supplemental files")
 
 configure_file(cmake/config.h.cin config.h)
 
@@ -230,7 +229,6 @@ else()
 endif()
 
 # Support cross compiling
-option(FORCE_CROSSCOMPILE "Enable cross-compilation" OFF)
 if(FORCE_CROSSCOMPILE)
     set(CMAKE_CROSSCOMPILING ON)
 endif()
@@ -242,6 +240,10 @@ else()
     if(NOT CROSS_EXPORTS)
         set(CROSS_EXPORTS "")
     endif()
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DPRBOOM_DEBUG=1)
 endif()
 
 set(PRBOOM_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -256,3 +258,23 @@ add_subdirectory(src)
 if(NOT CMAKE_CROSSCOMPILING)
     export(TARGETS ${CROSS_EXPORTS} FILE "${CMAKE_BINARY_DIR}/ImportExecutables.cmake")
 endif()
+
+## INSTALL..
+find_package(DLSS REQUIRED)
+get_property(_RTGL1_LOCATION TARGET RayTracedGL1::RayTracedGL1 PROPERTY LOCATION)
+get_property(_DLSS_LOCATION TARGET DLSS::runtime PROPERTY LOCATION)
+
+install(
+    PROGRAMS "${_RTGL1_LOCATION}"
+    DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)
+
+install(
+    PROGRAMS "${_DLSS_LOCATION}"
+    DESTINATION "${CMAKE_INSTALL_BINDIR}/rel"
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ovrd
+    DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)

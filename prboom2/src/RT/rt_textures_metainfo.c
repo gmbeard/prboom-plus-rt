@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include "rt_textures.h"
+#include "rt_main.h"
 
 #include "e6y.h"
 #include "lprintf.h"

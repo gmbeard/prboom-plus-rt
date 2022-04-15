@@ -25,6 +25,7 @@
  */
 
 #include "rt_main.h"
+#include "rt_hud.h"
 
 #include "i_video.h"
 #include "v_video.h"

@@ -33,10 +33,21 @@
 #include "d_player.h"
 #include "r_defs.h"
 
+#define min(x, y) \
+    (x) < (y) ? (x) : (y)
+
+#define max(x, y) \
+    (x) > (y) ? (x) : (y)
+
 typedef struct
 {
   RgInstance instance;
+#if defined(RG_USE_SURFACE_WIN32)
   HWND hwnd;
+#elif defined(RG_USE_SURFACE_XLIB)
+  Display* display;
+  Window hwnd;
+#endif
 
   float mat_view[4][4];
   float mat_projectionvk[4][4];
@@ -69,7 +80,13 @@ typedef struct
 extern rtmain_t rtmain;
 
 
+#if defined(RG_USE_SURFACE_WIN32)
 void RT_Init(HINSTANCE hinstance, HWND hwnd);
+#elif defined(RG_USE_SURFACE_XLIB)
+void RT_Init(Display* hinstance, Window hwnd);
+#else
+void RT_Init();
+#endif
 void RT_Destroy(void);
 
 void RT_StartFrame(void);
